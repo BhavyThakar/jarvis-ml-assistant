@@ -1,0 +1,34 @@
+# Core web app
+flask
+
+# ML / DL
+numpy
+scikit-learn
+tensorflow
+keras
+keras-preprocessing
+
+# PyTorch (used in yt_ai/*)
+torch
+
+# Computer vision + OCR
+opencv-python
+pillow
+pytesseract
+
+# Audio / TTS
+pyttsx3
+
+# Knowledge / utilities
+wikipedia
+python-dateutil
+requests
+
+# Optional / integrations (code handles missing imports, but safe to include)
+yfinance
+PyPDF2
+
+# Optional hotword (code handles missing imports, but safe to include)
+pvporcupine
+pyaudio
+

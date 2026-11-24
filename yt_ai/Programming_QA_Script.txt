@@ -1,0 +1,35 @@
+
+[Language]: C
+[Question]: What is a pointer in C?
+[Answer]: A pointer is a variable that stores the memory address of another variable.
+
+[Question]: What is the use of 'printf' function?
+[Answer]: The printf function is used to display formatted output on the console.
+
+[Language]: C++
+[Question]: What is a class in C++?
+[Answer]: A class is a user-defined data type that bundles data members and member functions.
+
+[Question]: What is inheritance in C++?
+[Answer]: Inheritance allows a class to acquire properties and behaviors from another class.
+
+[Language]: Python
+[Question]: What is a list in Python?
+[Answer]: A list is a collection that is ordered, mutable, and allows duplicate elements.
+
+[Question]: What is indentation in Python?
+[Answer]: Indentation defines code blocks in Python and is crucial for program structure.
+
+[Language]: Java
+[Question]: What is the JVM?
+[Answer]: The Java Virtual Machine (JVM) is a part of the Java Runtime Environment that executes Java bytecode.
+
+[Question]: What is method overloading in Java?
+[Answer]: Method overloading allows multiple methods in the same class with the same name but different parameters.
+
+[Language]: JavaScript
+[Question]: What is a variable in JavaScript?
+[Answer]: A variable is a container for storing data values and can be declared using var, let, or const.
+
+[Question]: What is the DOM?
+[Answer]: The DOM (Document Object Model) is a programming interface for HTML and XML that represents the structure of a web page.

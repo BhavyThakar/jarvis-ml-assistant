@@ -1,0 +1,571 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Jarvis AI</title>
+
+<style>
+  :root {
+    --bg: #0b0c10;
+    --card: rgba(255,255,255,0.06);
+    --border: rgba(255,255,255,0.15);
+    --text: #c5c6c7;
+    --accent: #66fcf1;
+    --accent-dark: #45a29e;
+    --bubble-user: #66fcf1;
+    --bubble-bot: rgba(255,255,255,0.09);
+  }
+
+  * { box-sizing: border-box; }
+
+  body {
+    margin: 0;
+    padding: 0;
+    background: var(--bg);
+    font-family: 'Segoe UI', sans-serif;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    height: 100vh;
+    overflow: hidden;
+  }
+
+  .app-shell {
+    display: flex;
+    width: 95vw;
+    height: 90vh;
+    border-radius: 20px;
+    border: 1px solid var(--border);
+    overflow: hidden;
+    backdrop-filter: blur(10px);
+    background: linear-gradient(135deg, rgba(11,12,16,0.96), rgba(19,24,33,0.98));
+  }
+
+  /* ========== SIDEBAR ========== */
+  .sidebar {
+    width: 60px;
+    background: rgba(0,0,0,0.7);
+    border-right: 1px solid var(--border);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    padding: 12px 6px;
+    gap: 10px;
+    position: relative;
+  }
+
+  .sidebar-header {
+    color: var(--accent);
+    font-weight: 700;
+    font-size: 0.9rem;
+    letter-spacing: 2px;
+    margin-bottom: 8px;
+  }
+
+  .side-btn {
+    width: 44px;
+    height: 44px;
+    border-radius: 14px;
+    border: 1px solid rgba(255,255,255,0.12);
+    background: rgba(255,255,255,0.03);
+    color: var(--text);
+    font-size: 18px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    transition: 0.15s;
+  }
+
+  .side-btn:hover {
+    background: rgba(102,252,241,0.18);
+    color: var(--accent);
+    transform: translateX(2px);
+  }
+
+  .side-label {
+    position: absolute;
+    left: 60px;
+    padding: 5px 9px;
+    border-radius: 10px;
+    background: rgba(0,0,0,0.8);
+    color: #e5e7eb;
+    font-size: 11px;
+    white-space: nowrap;
+    pointer-events: none;
+    opacity: 0;
+    transform: translateX(-4px);
+    transition: 0.15s;
+  }
+
+  .sidebar-item {
+    position: relative;
+  }
+
+  .sidebar-item:hover .side-label {
+    opacity: 1;
+    transform: translateX(6px);
+  }
+
+  /* ========== MAIN WRAPPER (CHAT + ORB) ========== */
+  .wrapper {
+    display: flex;
+    flex: 1;
+  }
+
+  /* LEFT CHAT PANEL */
+  .chat-panel {
+    width: 60%;
+    padding: 20px 22px;
+    display: flex;
+    flex-direction: column;
+    color: var(--text);
+  }
+
+  .top-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 8px;
+  }
+
+  .title {
+    font-size: 1.6rem;
+    color: var(--accent);
+    font-weight: 600;
+  }
+
+  /* Waveform */
+  .waveform {
+    display: flex;
+    align-items: flex-end;
+    gap: 4px;
+    height: 22px;
+  }
+
+  .bar {
+    width: 3px;
+    border-radius: 999px;
+    background: rgba(102,252,241,0.3);
+    height: 6px;
+    animation: wave 1s ease-in-out infinite;
+    animation-play-state: paused;
+  }
+
+  .bar:nth-child(2) { animation-delay: 0.1s; }
+  .bar:nth-child(3) { animation-delay: 0.2s; }
+  .bar:nth-child(4) { animation-delay: 0.3s; }
+  .bar:nth-child(5) { animation-delay: 0.4s; }
+
+  .waveform.active .bar {
+    animation-play-state: running;
+    background: var(--accent);
+  }
+
+  @keyframes wave {
+    0%,100% { height: 6px; opacity: 0.5; }
+    50% { height: 18px; opacity: 1; }
+  }
+
+  #chat-log {
+    flex: 1;
+    overflow-y: auto;
+    padding-right: 8px;
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    margin-top: 10px;
+  }
+
+  /* SCROLLBAR */
+  #chat-log::-webkit-scrollbar { width: 6px; }
+  #chat-log::-webkit-scrollbar-thumb {
+    background: var(--accent-dark);
+    border-radius: 3px;
+  }
+
+  .msg {
+    max-width: 75%;
+    padding: 12px 16px;
+    border-radius: 16px;
+    line-height: 1.4;
+    font-size: 14px;
+    animation: fadeIn 0.25s ease-out;
+    position: relative;
+  }
+
+  .bot {
+    align-self: flex-start;
+    background: var(--bubble-bot);
+    border: 1px solid var(--border);
+    border-bottom-left-radius: 4px;
+  }
+
+  .user {
+    align-self: flex-end;
+    background: var(--bubble-user);
+    color: #0b0c10;
+    border-bottom-right-radius: 4px;
+  }
+
+  @keyframes fadeIn {
+    from { opacity: 0; transform: translateY(10px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+
+  /* Typing bubble */
+  .typing-msg {
+    align-self: flex-start;
+    background: var(--bubble-bot);
+    border-radius: 16px;
+    padding: 10px 14px;
+    border: 1px solid var(--border);
+  }
+
+  .typing-dots {
+    display: flex;
+    align-items: center;
+    gap: 5px;
+  }
+  .dot {
+    width: 7px;
+    height: 7px;
+    background: var(--accent);
+    border-radius: 50%;
+    animation: bounce 1.2s infinite;
+  }
+  .dot:nth-child(2) { animation-delay: 0.15s; }
+  .dot:nth-child(3) { animation-delay: 0.3s; }
+
+  @keyframes bounce {
+    0%,100% { transform: translateY(0); opacity: 0.4; }
+    50% { transform: translateY(-5px); opacity: 1; }
+  }
+
+  /* INPUT BAR */
+  .input-box {
+    margin-top: 10px;
+    display: flex;
+    gap: 8px;
+  }
+
+  .input-box input {
+    flex: 1;
+    padding: 14px;
+    border-radius: 12px;
+    border: 1px solid var(--border);
+    background: rgba(255,255,255,0.06);
+    color: var(--text);
+    font-size: 14px;
+    outline: none;
+  }
+
+  .btn {
+    padding: 0 16px;
+    height: 44px;
+    border-radius: 12px;
+    border: none;
+    cursor: pointer;
+    font-size: 14px;
+    font-weight: 600;
+    transition: 0.2s;
+  }
+
+  .send-btn { background: var(--accent-dark); color: #0b0c10; }
+  .mic-btn { background: var(--accent); color: #0b0c10; }
+  .cam-btn { background: #1f2833; color: var(--accent); border: 1px solid var(--accent-dark); }
+
+  .send-btn:hover { background: var(--accent); }
+  .mic-btn.active { background: #2ecc71; }
+  .cam-btn:hover { background: var(--accent-dark); color: #0b0c10; }
+
+  /* RIGHT PANEL */
+  .orb-panel {
+    width: 35%;
+    background: radial-gradient(circle at top, #1f2833, #0b0c10 60%);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 24px;
+    padding: 18px;
+  }
+
+  .orb {
+    width: 220px;
+    height: 220px;
+    border-radius: 50%;
+    background: radial-gradient(circle, var(--accent), #0b0c10 75%);
+    box-shadow: 0 0 50px var(--accent);
+    animation: float 3s ease-in-out infinite;
+  }
+
+  @keyframes float {
+    0%,100% { transform: translateY(0); }
+    50% { transform: translateY(-12px); }
+  }
+
+  #camera {
+    width: 80%;
+    border-radius: 16px;
+    border: 1px solid var(--border);
+    background: black;
+  }
+
+  /* RESPONSIVE */
+  @media (max-width: 900px) {
+    .app-shell {
+      width: 100vw;
+      height: 100vh;
+      border-radius: 0;
+    }
+    .sidebar {
+      width: 52px;
+    }
+    .wrapper {
+      flex-direction: column;
+    }
+    .chat-panel {
+      width: 100%;
+      height: 70%;
+    }
+    .orb-panel {
+      width: 100%;
+      height: 30%;
+      flex-direction: row;
+    }
+    #camera {
+      width: 45%;
+    }
+    .orb {
+      width: 150px;
+      height: 150px;
+    }
+  }
+
+</style>
+</head>
+
+<body>
+
+<div class="app-shell">
+  <!-- SIDEBAR -->
+  <div class="sidebar">
+    <div class="sidebar-header">J</div>
+
+    <div class="sidebar-item">
+      <button class="side-btn" data-cmd="open youtube">▶️</button>
+      <div class="side-label">Open YouTube</div>
+    </div>
+
+    <div class="sidebar-item">
+      <button class="side-btn" data-cmd="open google">🌐</button>
+      <div class="side-label">Open Google</div>
+    </div>
+
+    <div class="sidebar-item">
+      <button class="side-btn" data-cmd="open chrome">🧩</button>
+      <div class="side-label">Open Chrome</div>
+    </div>
+
+    <div class="sidebar-item">
+      <button class="side-btn" data-cmd="write a note">📝</button>
+      <div class="side-label">Write a note</div>
+    </div>
+
+    <div class="sidebar-item">
+      <button class="side-btn" data-cmd="open whatsapp">💬</button>
+      <div class="side-label">Open WhatsApp Web</div>
+    </div>
+  </div>
+
+  <!-- MAIN AREA -->
+  <div class="wrapper">
+
+    <!-- CHAT PANEL -->
+    <div class="chat-panel">
+      <div class="top-row">
+        <div class="title">Jarvis AI</div>
+        <div class="waveform" id="waveform">
+          <div class="bar"></div><div class="bar"></div>
+          <div class="bar"></div><div class="bar"></div><div class="bar"></div>
+        </div>
+      </div>
+
+      <div id="chat-log"></div>
+
+      <div class="input-box">
+        <input id="chat-input" placeholder="Message Jarvis..." />
+        <button class="btn mic-btn" id="mic-btn">🎤</button>
+        <button class="btn cam-btn" id="cam-btn">📷</button>
+        <button class="btn send-btn" id="send-btn">Send</button>
+      </div>
+    </div>
+
+    <!-- ORB + CAMERA -->
+    <div class="orb-panel">
+      <div class="orb"></div>
+      <video id="camera" autoplay muted></video>
+    </div>
+
+  </div>
+</div>
+
+<script>
+  const log = document.getElementById("chat-log");
+  const input = document.getElementById("chat-input");
+  const sendBtn = document.getElementById("send-btn");
+  const micBtn = document.getElementById("mic-btn");
+  const camBtn = document.getElementById("cam-btn");
+  const camera = document.getElementById("camera");
+  const waveform = document.getElementById("waveform");
+  const sidebarButtons = document.querySelectorAll(".side-btn");
+
+  function addMsg(text, type) {
+    const div = document.createElement("div");
+    div.className = "msg " + type;
+    div.textContent = text;
+    log.appendChild(div);
+    log.scrollTop = log.scrollHeight;
+  }
+
+  function addTyping() {
+    const div = document.createElement("div");
+    div.className = "typing-msg";
+    div.innerHTML = `
+      <div class="typing-dots">
+        <div class="dot"></div><div class="dot"></div><div class="dot"></div>
+      </div>`;
+    log.appendChild(div);
+    log.scrollTop = log.scrollHeight;
+  }
+
+  function removeTyping() {
+    const t = document.querySelector(".typing-msg");
+    if (t) t.remove();
+  }
+
+  async function sendMessageText(text) {
+    if (!text) return;
+    addMsg(text, "user");
+
+    addTyping();
+
+    let res = await fetch("/chat", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ message: text })
+    });
+
+    let data = await res.json();
+    removeTyping();
+    addMsg(data.reply, "bot");
+  }
+
+  async function sendMessage() {
+    const text = input.value.trim();
+    if (!text) return;
+    input.value = "";
+    sendMessageText(text);
+  }
+
+  sendBtn.onclick = sendMessage;
+  input.addEventListener("keypress", (e) => { if (e.key === "Enter") sendMessage(); });
+
+  // Sidebar shortcuts
+  sidebarButtons.forEach(btn => {
+    btn.addEventListener("click", () => {
+      const cmd = btn.getAttribute("data-cmd");
+      sendMessageText(cmd);
+    });
+  });
+
+  // Voice input (always-on, but safe restart)
+  const SR = window.SpeechRecognition || window.webkitSpeechRecognition;
+  if (SR) {
+    const rec = new SR();
+    rec.lang = "en-US";
+    rec.continuous = true;
+    rec.interimResults = false;
+
+    let isListening = false;
+
+    function startListening() {
+      if (isListening) return;
+      isListening = true;
+      try {
+        rec.start();
+      } catch (e) {
+        // Avoid crash if browser thinks we're already started/stopped
+        console.warn("SpeechRecognition start() failed:", e);
+      }
+    }
+
+    function stopListening() {
+      isListening = false;
+      try {
+        rec.stop();
+      } catch (e) {
+        console.warn("SpeechRecognition stop() failed:", e);
+      }
+      micBtn.classList.remove("active");
+      waveform.classList.remove("active");
+    }
+
+    rec.onstart = () => {
+      micBtn.classList.add("active");
+      waveform.classList.add("active");
+    };
+
+    rec.onend = () => {
+      // Only restart if user didn't stop it.
+      micBtn.classList.remove("active");
+      waveform.classList.remove("active");
+
+      if (isListening) {
+        // Small delay helps some browsers avoid InvalidStateError loops.
+        setTimeout(() => startListening(), 250);
+      }
+    };
+
+    rec.onerror = (e) => {
+      console.error("SpeechRecognition error:", e);
+      // If permission/mic not available, stop trying.
+      const fatal = ["not-allowed", "service-not-allowed", "audio-capture", "network"].includes(e.error);
+      if (fatal) stopListening();
+    };
+
+    rec.onresult = (e) => {
+      const text = e.results[e.results.length - 1][0].transcript;
+      if (text && text.trim()) {
+        sendMessageText(text);
+      }
+    };
+
+    // start listening initially
+    startListening();
+
+    // Manual toggle
+    micBtn.addEventListener("click", () => {
+      if (isListening) stopListening();
+      else startListening();
+    });
+  } else {
+    micBtn.disabled = true;
+    waveform.style.opacity = 0.2;
+  }
+
+  // Camera on button
+  camBtn.onclick = async () => {
+    try {
+      const stream = await navigator.mediaDevices.getUserMedia({ video: true });
+      camera.srcObject = stream;
+    } catch (e) {
+      console.error(e);
+    }
+  };
+</script>
+
+</body>
+</html>
